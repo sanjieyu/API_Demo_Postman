@@ -144,11 +144,12 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "23408364-11f0-40c8-8787-e5451a88183f",
 								"exec": [
-									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"// 1. import cheerio by using 'require'\r",
 									"const cheerio = require('cheerio');\r",
 									"\r",
-									"// 2. 加载返回的 HTML\r",
+									"// 2. load the response body into cheerio by using 'cheerio.load' function. Assign it to a variable '$' for easier access.\r",
 									"const $ = cheerio.load(pm.response.text());\r",
 									"\r",
 									"// Case 1: Verify 200 OK status\r",
@@ -163,41 +164,38 @@
 									"\r",
 									"// Case 3: 1：Verify Proposal No\r",
 									"pm.test(\"Verify Proposal No\", function () {\r",
-									"    // 通过 id 选择器找到 input，并获取它的 value 属性\r",
+									"    // Get the 'value'\r",
 									"    var proposalNo = $('#ProposalNo').val();\r",
 									"    \r",
-									"    // 打印到控制台方便调试\r",
+									"    // Print to Console\r",
 									"    console.log(\"Actual Proposal No:\", proposalNo);\r",
 									"    \r",
-									"    // 断言：验证是否等于 \"321241\"\r",
+									"    // Assert\r",
 									"    pm.expect(proposalNo).to.eql(\"321241-1\");\r",
 									"});\r",
 									"\r",
 									"// Case 4：1：Verify ContactMobile and Email\r",
 									"pm.test(\"Verify Contact Details\", function () {\r",
-									"    // 2. 使用更明确的属性选择器作为备选方案\r",
+									"\r",
 									"    const mobileElement = $('#ContactMobile');\r",
 									"    const emailElement = $('#ContactEmail');\r",
 									"\r",
-									"    // 调试打印：检查元素是否真的被选中了\r",
 									"    console.log(\"Mobile Element Length:\", mobileElement.length);\r",
 									"\r",
-									"    // 3. 获取 value 的标准写法\r",
 									"    var mobile = mobileElement.val();\r",
 									"    var email = emailElement.val();\r",
 									"\r",
 									"    console.log(\"Actual Mobile:\", mobile);\r",
 									"    console.log(\"Actual Email:\", email);\r",
 									"\r",
-									"    // 4. 断言\r",
 									"    pm.expect(mobile).to.eql(\"6546546546\");\r",
 									"    pm.expect(email).to.eql(\"dsd@test.com\");\r",
-									"});"
+									"});\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
-								"requests": {},
-								"id": "23408364-11f0-40c8-8787-e5451a88183f"
+								"requests": {}
 							}
 						}
 					],
@@ -278,34 +276,27 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "7001a6d2-94df-4b48-96c8-8137ea29cafb",
 								"exec": [
-									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
 									"const cheerio = require('cheerio');\r",
 									"\r",
-									"// 2. 加载返回的 HTML\r",
 									"const $ = cheerio.load(pm.response.text());\r",
 									"\r",
-									"// 3. Case 1：Verify Return Code.\r",
 									"pm.test(\"Correct Return Code (200 )\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
 									"// 4. Case 2: Verify the search quote result\r",
 									"pm.test(\"Verify the search quote result\", function () {\r",
-									"    // 1. 定位到第一行数据 (tr.grid-row)\r",
-									"    // 2. 找到第二个单元格 (td)，并获取其中 a 标签的文本\r",
 									"    var quoteNo = $(\"tr.grid-row\").first().find(\"td\").eq(1).text().trim();\r",
-									"    \r",
 									"    console.log(\"First Result Invoice No:\", quoteNo);\r",
-									"    \r",
-									"    // 断言是否等于你搜索的编号\r",
 									"    pm.expect(quoteNo).to.eql(\"321241-1\");\r",
-									"});"
+									"});\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
-								"requests": {},
-								"id": "7001a6d2-94df-4b48-96c8-8137ea29cafb"
+								"requests": {}
 							}
 						}
 					],
