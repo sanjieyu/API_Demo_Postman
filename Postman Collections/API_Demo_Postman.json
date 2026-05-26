@@ -1119,11 +1119,10 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "02af6b6c-06fb-4011-89f1-a9474798430e",
 								"exec": [
-									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
 									"const cheerio = require('cheerio');\r",
 									"\r",
-									"// 2. 加载返回的 HTML\r",
 									"const $ = cheerio.load(pm.response.text());\r",
 									"\r",
 									"// 3. Case 1：Verify Return Code.\r",
@@ -1133,19 +1132,14 @@
 									"\r",
 									"// 4. Case 2: Verify the search service result\r",
 									"pm.test(\"Verify the search service result\", function () {\r",
-									"    // 定位逻辑：找到 tbody 下的第一行 (tr)，找它的第二个单元格 (td)，获取其链接文本\r",
 									"    var firstInvoiceNo = $(\"table.grid-table tbody tr\").first().find(\"td\").eq(1).text().trim();\r",
-									"    \r",
 									"    console.log(\"First Result Invoice No:\", firstInvoiceNo);\r",
-									"    \r",
-									"    // 断言是否等于你搜索的编号\r",
 									"    pm.expect(firstInvoiceNo).to.eql(\"321038S1\");\r",
 									"});"
 								],
 								"type": "text/javascript",
 								"packages": {},
-								"requests": {},
-								"id": "02af6b6c-06fb-4011-89f1-a9474798430e"
+								"requests": {}
 							}
 						}
 					],
@@ -2194,6 +2188,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fdeb8084-66d0-4b2f-9ca6-af42cf1b1c3a",
 								"exec": [
 									"// 1. Case 1：Verify Return Code.\r",
 									"pm.test(\"Correct Return Code (200 )\", function () {\r",
@@ -2202,8 +2197,7 @@
 								],
 								"type": "text/javascript",
 								"packages": {},
-								"requests": {},
-								"id": "fdeb8084-66d0-4b2f-9ca6-af42cf1b1c3a"
+								"requests": {}
 							}
 						}
 					],
