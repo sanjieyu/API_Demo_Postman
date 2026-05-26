@@ -1,0 +1,2287 @@
+{
+	"info": {
+		"_postman_id": "ae7ce61a-3c25-408a-b601-e21c5f76be39",
+		"name": "EGD_Production",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"item": [
+				{
+					"name": "Pre_Login_Get_Cookie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c8070d7-c07e-40f3-960d-5b53e0e0c2ab",
+								"exec": [
+									"// 1. Get the response HTML content as a string.    \r",
+									"var responseHTML = pm.response.text();\r",
+									"\r",
+									"// 2. Get the value from \" __RequestVerificationToken\"\r",
+									"var token = responseHTML.match(/name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"/);\r",
+									"\r",
+									"if (token && token.length > 1) {\r",
+									"    // 3. Save the token\r",
+									"    pm.environment.set(\"xsrf_token\", token[1]);\r",
+									"    console.log(\"Got Token: \" + token[1]);\r",
+									"} else {\r",
+									"    console.error(\"Can't find __RequestVerificationToken，please check the source code\");\r",
+									"}\r",
+									"\r",
+									"// Case 2: Response time is acceptable.\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "b2f64f8e-5d19-4753-a171-55dcd2c5a85f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Account/Login"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Correct Return Code (200)\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 302]);\r",
+									"});\r",
+									"\r",
+									"console.log(\"Login successful!\");\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "4978098f-51de-4778-a350-0eb284b4d900"
+							}
+						}
+					],
+					"id": "445abfb5-5192-4f6e-a1e7-d81cdbbd2be0",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "Email",
+									"value": "{{username}}",
+									"type": "text",
+									"uuid": "26dd9043-987e-4f0a-960e-73ccf2500265"
+								},
+								{
+									"key": "Password",
+									"value": "{{password}}",
+									"type": "text",
+									"uuid": "9b61a4e4-2d50-47fd-8417-70fcd179623d"
+								},
+								{
+									"key": "RememberMe",
+									"value": "False",
+									"type": "text",
+									"uuid": "edd06b14-a175-4f66-a8b3-1ffa8fbdf77b"
+								},
+								{
+									"key": "__RequestVerificationToken",
+									"value": "{{xsrf_token}}",
+									"type": "text",
+									"uuid": "1a10b4ad-7bf0-48d5-9dc5-ecd8e56d73a4"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Account/Login?ReturnUrl=/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Account",
+								"Login"
+							],
+							"query": [
+								{
+									"key": "ReturnUrl",
+									"value": "/"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "4249a3c2-13a4-434c-802c-c7fb6d0926c9"
+		},
+		{
+			"name": "Quote",
+			"item": [
+				{
+					"name": "Get_Quote_Doors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"const cheerio = require('cheerio');\r",
+									"\r",
+									"// 2. 加载返回的 HTML\r",
+									"const $ = cheerio.load(pm.response.text());\r",
+									"\r",
+									"// Case 1: Verify 200 OK status\r",
+									"pm.test(\"Status code is 200 OK\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 5000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"// Case 3: 1：Verify Proposal No\r",
+									"pm.test(\"Verify Proposal No\", function () {\r",
+									"    // 通过 id 选择器找到 input，并获取它的 value 属性\r",
+									"    var proposalNo = $('#ProposalNo').val();\r",
+									"    \r",
+									"    // 打印到控制台方便调试\r",
+									"    console.log(\"Actual Proposal No:\", proposalNo);\r",
+									"    \r",
+									"    // 断言：验证是否等于 \"321241\"\r",
+									"    pm.expect(proposalNo).to.eql(\"321241-1\");\r",
+									"});\r",
+									"\r",
+									"// Case 4：1：Verify ContactMobile and Email\r",
+									"pm.test(\"Verify Contact Details\", function () {\r",
+									"    // 2. 使用更明确的属性选择器作为备选方案\r",
+									"    const mobileElement = $('#ContactMobile');\r",
+									"    const emailElement = $('#ContactEmail');\r",
+									"\r",
+									"    // 调试打印：检查元素是否真的被选中了\r",
+									"    console.log(\"Mobile Element Length:\", mobileElement.length);\r",
+									"\r",
+									"    // 3. 获取 value 的标准写法\r",
+									"    var mobile = mobileElement.val();\r",
+									"    var email = emailElement.val();\r",
+									"\r",
+									"    console.log(\"Actual Mobile:\", mobile);\r",
+									"    console.log(\"Actual Email:\", email);\r",
+									"\r",
+									"    // 4. 断言\r",
+									"    pm.expect(mobile).to.eql(\"6546546546\");\r",
+									"    pm.expect(email).to.eql(\"dsd@test.com\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "23408364-11f0-40c8-8787-e5451a88183f"
+							}
+						}
+					],
+					"id": "b4132d91-40d8-4592-a440-246150b8b18c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/Edit/{{quoteId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "List_Doors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "cdd7da39-cfe8-4c62-b20d-180b1c52cd6c"
+							}
+						}
+					],
+					"id": "b4e50af4-7c63-4e66-8ecc-64952580e733",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/ListDoors"
+					},
+					"response": []
+				},
+				{
+					"name": "List_Quote",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "e6fd439a-ecee-43b6-b8c6-7e62f8e5edde"
+							}
+						}
+					],
+					"id": "4b9bc2b6-69c2-4e86-af2d-3b610d4e1bd0",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/List"
+					},
+					"response": []
+				},
+				{
+					"name": "Search_Quote",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"const cheerio = require('cheerio');\r",
+									"\r",
+									"// 2. 加载返回的 HTML\r",
+									"const $ = cheerio.load(pm.response.text());\r",
+									"\r",
+									"// 3. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 4. Case 2: Verify the search quote result\r",
+									"pm.test(\"Verify the search quote result\", function () {\r",
+									"    // 1. 定位到第一行数据 (tr.grid-row)\r",
+									"    // 2. 找到第二个单元格 (td)，并获取其中 a 标签的文本\r",
+									"    var quoteNo = $(\"tr.grid-row\").first().find(\"td\").eq(1).text().trim();\r",
+									"    \r",
+									"    console.log(\"First Result Invoice No:\", quoteNo);\r",
+									"    \r",
+									"    // 断言是否等于你搜索的编号\r",
+									"    pm.expect(quoteNo).to.eql(\"321241-1\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "7001a6d2-94df-4b48-96c8-8137ea29cafb"
+							}
+						}
+					],
+					"id": "f7c93a98-8e9a-498c-9c4c-cdf05e56c6d2",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Quote/List?SelectedTab=&FromDate=14/02/2026 - 14/05/2026&UserAssignedId=76e73c30-c3d4-4f94-8364-7a77e3e8f13b&J=All statuses&JobStatusNameTwo=All statuses&ClientName=&Contact_Number=&Suburb=&Postcode=&CustomerPO=Postman Sample&ProposalNo=&DoorDesign=0&ColourCategory=0&DoorColor=0&SiteAddress=&DoorSearchModel.FromDate=14/02/2026 - 14/05/2026&DoorSearchModel.DoorJobStatusName=All statuses&DoorSearchModel.DoorJobStatusName=All statuses&DoorJobStatusNameParam=All statuses&DoorSearchModel.UserAssignedId=76e73c30-c3d4-4f94-8364-7a77e3e8f13b",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Quote",
+								"List"
+							],
+							"query": [
+								{
+									"key": "SelectedTab",
+									"value": ""
+								},
+								{
+									"key": "FromDate",
+									"value": "14/02/2026 - 14/05/2026"
+								},
+								{
+									"key": "UserAssignedId",
+									"value": "76e73c30-c3d4-4f94-8364-7a77e3e8f13b"
+								},
+								{
+									"key": "J",
+									"value": "All statuses"
+								},
+								{
+									"key": "JobStatusNameTwo",
+									"value": "All statuses"
+								},
+								{
+									"key": "ClientName",
+									"value": ""
+								},
+								{
+									"key": "Contact_Number",
+									"value": ""
+								},
+								{
+									"key": "Suburb",
+									"value": ""
+								},
+								{
+									"key": "Postcode",
+									"value": ""
+								},
+								{
+									"key": "CustomerPO",
+									"value": "Postman Sample"
+								},
+								{
+									"key": "ProposalNo",
+									"value": ""
+								},
+								{
+									"key": "DoorDesign",
+									"value": "0"
+								},
+								{
+									"key": "ColourCategory",
+									"value": "0"
+								},
+								{
+									"key": "DoorColor",
+									"value": "0"
+								},
+								{
+									"key": "SiteAddress",
+									"value": ""
+								},
+								{
+									"key": "DoorSearchModel.FromDate",
+									"value": "14/02/2026 - 14/05/2026"
+								},
+								{
+									"key": "DoorSearchModel.DoorJobStatusName",
+									"value": "All statuses"
+								},
+								{
+									"key": "DoorSearchModel.DoorJobStatusName",
+									"value": "All statuses"
+								},
+								{
+									"key": "DoorJobStatusNameParam",
+									"value": "All statuses"
+								},
+								{
+									"key": "DoorSearchModel.UserAssignedId",
+									"value": "76e73c30-c3d4-4f94-8364-7a77e3e8f13b"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add_Quote",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "dae51691-005b-439a-8a7a-eea1c43478bf"
+							}
+						}
+					],
+					"id": "ede45218-08c6-44cb-b41c-21242420e308",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/Create"
+					},
+					"response": []
+				}
+			],
+			"id": "3a28026e-9164-4662-8b9d-2ca318d5bc5f"
+		},
+		{
+			"name": "Quotation",
+			"item": [
+				{
+					"name": "Quotation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"const cheerio = require('cheerio');\r",
+									"\r",
+									"// 2. 加载返回的 HTML\r",
+									"const $ = cheerio.load(pm.response.text());\r",
+									"\r",
+									"// 3. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 4. Case 2：Verify Proposal Number\r",
+									"pm.test(\"Verify Proposal No\", function () {\r",
+									"    // 通过 id 选择器找到 input，并获取它的 value 属性\r",
+									"    var proposalNo = $('#ProposalNo').val();\r",
+									"    \r",
+									"    // 打印到控制台方便调试\r",
+									"    console.log(\"Actual Proposal No:\", proposalNo);\r",
+									"    \r",
+									"    // 断言：验证是否等于 \"321241\"\r",
+									"    pm.expect(proposalNo).to.eql(\"321241-1\");\r",
+									"});\r",
+									"\r",
+									"// 5. Case 3：Verify Client Name.\r",
+									"pm.test(\"Verify Client Name\", function () {\r",
+									"    var clientName = $('#ClientName').val();\r",
+									"    console.log(\"Client Name:\", clientName);\r",
+									"    pm.expect(clientName).to.eql(\"Automation Testing\");\r",
+									"});\r",
+									"\r",
+									"// 6. Case 4：Verify Contact Full Address.\r",
+									"pm.test(\"Verify Contact Full Address\", function () {\r",
+									"    var clientAddress = $('#ContactFullAddress').val();\r",
+									"    console.log(\"Contact Full Address:\", clientAddress);\r",
+									"    pm.expect(clientAddress).to.eql(\"18 Bonview Rd MELBOURNE 3000\");\r",
+									"});\r",
+									"\r",
+									"// 7. Case 5：Verify Salesperson.\r",
+									"pm.test(\"Verify Salesperson\", function () {\r",
+									"    var salesPerson = $('#SalesPerson').val();\r",
+									"    console.log(\"Salesperson:\", salesPerson);\r",
+									"    pm.expect(salesPerson).to.eql(\"Yi Sun\");\r",
+									"});\r",
+									"\r",
+									"// 8. Case 6：Verify Contact Mobile.\r",
+									"pm.test(\"Verify Contact Mobile\", function () {\r",
+									"    var contactMobile = $('#ContactMobile').val();\r",
+									"    console.log(\"Contact Mobile:\", contactMobile);\r",
+									"    pm.expect(contactMobile).to.eql(\"6546546546\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "dd2bfb4d-fc0b-42bb-a698-236a5d38b69c"
+							}
+						}
+					],
+					"id": "021ce7ba-e9a2-4784-8e9f-8a1f2e6935d6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/Final/{{quoteId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Job_Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"const cheerio = require('cheerio');\r",
+									"\r",
+									"// 2. 加载返回的 HTML\r",
+									"const $ = cheerio.load(pm.response.text());\r",
+									"\r",
+									"// 3. Case 1：Verify Door type\r",
+									"pm.test(\"Verify Door Type\", function () {\r",
+									"    var door_type = $(\"td:contains('Door Type:')\").next().text().trim();\r",
+									"    console.log(\"Captured Door Type:\", door_type);\r",
+									"    pm.expect(door_type).to.eql(\"Panel Lift-Safe\");\r",
+									"});\r",
+									"\r",
+									"// 4. Case 2：Verify Actual Height\r",
+									"pm.test(\"Verify Actual Height\", function () {\r",
+									"    // 1. 找到内容包含 \"Actual Height:\" 的 td 标签\r",
+									"    // 2. 找到该 td 的下一个兄弟节点 (next)\r",
+									"    // 3. 获取其中的文本内容并去除多余空格 (.trim())\r",
+									"    var actual_height = $(\"td:contains('Actual Height:')\").next().text().trim();\r",
+									"    \r",
+									"    console.log(\"Actual Height:\", actual_height);\r",
+									"    \r",
+									"    // 断言：验证是否等于 \"041111122\"\r",
+									"    pm.expect(actual_height).to.eql(\"2310\");\r",
+									"});\r",
+									"\r",
+									"// 5. Case 3：Verify Actual Width \r",
+									"pm.test(\"Verify Actual Width\", function () {\r",
+									"    var actual_width = $(\"td:contains('Actual Width:')\").next().text().trim();\r",
+									"    console.log(\"Captured Actual Width:\", actual_width);\r",
+									"    pm.expect(actual_width).to.eql(\"3590\");\r",
+									"});\r",
+									"\r",
+									"// 6. Case 4：Verify Door Design:\r",
+									"pm.test(\"Verify Door Design\", function () {\r",
+									"    var door_design = $(\"td:contains('Door Design:')\").next().find('span').first().text().trim();\r",
+									"    console.log(\"Captured Door Design:\", door_design);\r",
+									"    pm.expect(door_design).to.eql(\"Classic panel\");\r",
+									"});\r",
+									"\r",
+									"// 7. Case 5：Verify Embossments:\r",
+									"pm.test(\"Verify Embossments\", function () {\r",
+									"    var embossments = $(\"td:contains('Door Design:')\").next().find('.notes').text().trim();\r",
+									"    console.log(\"Captured Embossments:\", embossments);\r",
+									"    pm.expect(embossments).to.include(\"5\");\r",
+									"});\r",
+									"\r",
+									"// 8. Case 6：Verify Door Finish:\r",
+									"pm.test(\"Verify Door Finish:\", function () {\r",
+									"    var door_finish = $(\"td:contains('Door Finish:')\").next().text().trim();\r",
+									"    console.log(\"Captured Door Finish:\", door_finish);\r",
+									"    pm.expect(door_finish).to.eql(\"Woodgrain Texture\");\r",
+									"});\r",
+									"\r",
+									"// 9. Case 7：Verify No. of Panel:\r",
+									"pm.test(\"Verify No. of Panel:\", function () {\r",
+									"    var panelNo = $(\"td:contains('No. of Panel:')\").next().text().trim();\r",
+									"    console.log(\"Captured No. of Panel:\", panelNo);\r",
+									"    pm.expect(panelNo).to.eql(\"4\");\r",
+									"});\r",
+									"\r",
+									"// 10. Case 8：Verify Category & Colour:\r",
+									"pm.test(\"Verify Category & Colour:\", function () {\r",
+									"    var category_colour = $(\"td:contains('Category & Colour:')\").next().text().trim();\r",
+									"    console.log(\"Captured Category & Colour:\", category_colour);\r",
+									"    pm.expect(category_colour).to.eql(\"ColorBond, Monument\");\r",
+									"});\r",
+									"\r",
+									"// 11. Case 9：Verify Opening Size LH:\r",
+									"pm.test(\"Verify Opening Size LH:\", function () {\r",
+									"    // 方法 A：利用 class 缩小范围（推荐）\r",
+									"    // 1. 找到包含文本且 class 为 col-md-4 的 div\r",
+									"    var fullText = $(\"div.col-md-4:contains('Opening Size LH:')\").text().trim();\r",
+									"    // 2. 替换掉标签名\r",
+									"    // 注意：这里用 replace 可能因为隐藏字符失败，建议用正则表达式 \\s* 匹配可能存在的空格\r",
+									"    var opening_lh = fullText.replace(/Opening Size LH:\\s*/, '').trim();\r",
+									"    console.log(\"Captured Opening Size LH:\", opening_lh);\r",
+									"    pm.expect(opening_lh).to.eql(\"2300\");\r",
+									"});\r",
+									"\r",
+									"// 12. Case 9：Verify Opening Size RH:\r",
+									"pm.test(\"Verify Opening Size RH:\", function () {\r",
+									"    // 方法 B：直接定位 <span> 的父元素（最稳妥）\r",
+									"    // 1. 先定位到具体的 span\r",
+									"    // 2. 获取它父元素 (div) 的文本\r",
+									"    var fullText = $(\"span:contains('Opening Size RH:')\").parent().text().trim();\r",
+									"    \r",
+									"    // 3. 提取数字部分\r",
+									"    var opening_rh = fullText.replace('Opening Size RH:', '').trim();\r",
+									"    console.log(\"Captured Opening Size RH:\", opening_rh);\r",
+									"    pm.expect(opening_rh).to.eql(\"2300\");\r",
+									"});\r",
+									"\r",
+									"// 13. Case 10：Verify Opening Size Width:\r",
+									"pm.test(\"Verify Opening Size Width:\", function () {\r",
+									"    // 方法 C：正则表达式提取（技术流）\r",
+									"    var fullText = $(\"div:contains('Opening Size Width:')\").text();\r",
+									"    \r",
+									"    // 正则表达式逻辑：找到 \"Opening Size RH:\" 后面跟着的数字\r",
+									"    var match = fullText.match(/Opening Size Width:\\s*(\\d+)/);\r",
+									"    var opening_width = match ? match[1] : null;\r",
+									"    console.log(\"Captured Opening Size RH:\", opening_width);\r",
+									"    pm.expect(opening_width).to.eql(\"3530\");\r",
+									"});\r",
+									"\r",
+									"// 14. Case 11：Verify SR Left:\r",
+									"pm.test(\"Verify SR Left:\", function () {\r",
+									"    // 方法 A：利用 class 缩小范围（推荐）\r",
+									"    // 1. 找到包含文本且 class 为 col-md-4 的 div\r",
+									"    var fullText = $(\"div.col-md-4:contains('SR Left:')\").text().trim();\r",
+									"    // 2. 替换掉标签名\r",
+									"    // 注意：这里用 replace 可能因为隐藏字符失败，建议用正则表达式 \\s* 匹配可能存在的空格\r",
+									"    var sr_left = fullText.replace(/SR Left:\\s*/, '').trim();\r",
+									"    console.log(\"Captured SR Left:\", sr_left);\r",
+									"    pm.expect(sr_left).to.eql(\"200\");\r",
+									"});\r",
+									"\r",
+									"// 15. Case 12：Verify HR:\r",
+									"pm.test(\"Verify HR:\", function () {\r",
+									"    // 方法 B：直接定位 <span> 的父元素（最稳妥）\r",
+									"    // 1. 先定位到具体的 span\r",
+									"    // 2. 获取它父元素 (div) 的文本\r",
+									"    var fullText = $(\"span:contains('HR:')\").parent().text().trim();\r",
+									"    \r",
+									"    // 3. 提取数字部分\r",
+									"    var hr = fullText.replace('HR:', '').trim();\r",
+									"    console.log(\"Captured HR:\", hr);\r",
+									"    pm.expect(hr).to.eql(\"400\");\r",
+									"});\r",
+									"\r",
+									"// 16. Case 13：Verify SR Right:\r",
+									"pm.test(\"Verify SR Right:\", function () {\r",
+									"    // 方法 C：正则表达式提取（技术流）\r",
+									"    var fullText = $(\"div:contains('Opening Size Width:')\").text();\r",
+									"    \r",
+									"    // 正则表达式逻辑：找到 \"SR Right:\" 后面跟着的数字\r",
+									"    var match = fullText.match(/SR Right:\\s*(\\d+)/);\r",
+									"    var sr_right = match ? match[1] : null;\r",
+									"    console.log(\"Captured SR Right:\", sr_right);\r",
+									"    pm.expect(sr_right).to.eql(\"250\");\r",
+									"});\r",
+									"\r",
+									"// 17. Case 14：Verify Opener:\r",
+									"pm.test(\"Verify Opener:\", function () {\r",
+									"    // 方法 A：利用 class 缩小范围（推荐）\r",
+									"    // 1. 找到包含文本且 class 为 col-md-4 的 div\r",
+									"    var fullText = $(\"div.col-md-4:contains('Opener:')\").text().trim();\r",
+									"    // 2. 替换掉标签名\r",
+									"    // 注意：这里用 replace 可能因为隐藏字符失败，建议用正则表达式 \\s* 匹配可能存在的空格\r",
+									"    var opener = fullText.replace(/Opener:\\s*/, '').trim();\r",
+									"    console.log(\"Captured Opener:\", opener);\r",
+									"    pm.expect(opener).to.eql(\"ECO1000N Belt Drive\");\r",
+									"});\r",
+									"\r",
+									"// 18. Case 15：Verify No. of Handsets:\r",
+									"pm.test(\"Verify No. of Handsets:\", function () {\r",
+									"    // 方法 B：直接定位 <span> 的父元素（最稳妥）\r",
+									"    // 1. 先定位到具体的 span\r",
+									"    // 2. 获取它父元素 (div) 的文本\r",
+									"    var fullText = $(\"span:contains('No. of Handsets:')\").parent().text().trim();\r",
+									"    \r",
+									"    // 3. 提取数字部分\r",
+									"    var handset_no = fullText.replace('No. of Handsets:', '').trim();\r",
+									"    console.log(\"Captured No. of Handsets:\", handset_no);\r",
+									"    pm.expect(handset_no).to.eql(\"2\");\r",
+									"});\r",
+									"\r",
+									"// 19. Case 16：Verify Door wall button:\r",
+									"pm.test(\"Verify Door wall button:\", function () {\r",
+									"    // 方法 C：正则表达式提取（技术流）\r",
+									"    var fullText = $(\"div:contains('Door wall button:')\").text();\r",
+									"    \r",
+									"    // 正则表达式逻辑：找到 \"Door wall button:\" 后面跟着的数字\r",
+									"    var match = fullText.match(/Door wall button:\\s*(\\d+)/);\r",
+									"    var wall_btn = match ? match[1] : null;\r",
+									"    console.log(\"Captured SR Right:\", wall_btn);\r",
+									"    pm.expect(wall_btn).to.eql(\"2\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "025821b4-2e20-4a81-ae0a-9005c73b48a2"
+							}
+						}
+					],
+					"id": "7c7394eb-740a-4d6c-85af-0728197fca88",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/Final/{{quoteId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Total_Cost",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"const cheerio = require('cheerio');\r",
+									"\r",
+									"// 2. 加载返回的 HTML\r",
+									"const $ = cheerio.load(pm.response.text());\r",
+									"\r",
+									"// 3. Case 1：Verify Quote Amount\r",
+									"pm.test(\"Verify Quote Amount\", function () {\r",
+									"    // 直接通过 id 定位 input 元素并获取其 value\r",
+									"    var quote_amount = $('#QuotedAmount').val();\r",
+									"    console.log(\"Captured Quote Amount:\", quote_amount);\r",
+									"    pm.expect(quote_amount).to.eql(\"3648\");\r",
+									"});\r",
+									"\r",
+									"// 4. Case 2：Verify Sale Amount (Ex GST)\r",
+									"pm.test(\"Verify Sale Amount (Ex GST)\", function () {\r",
+									"    // 直接通过 id 定位 input 元素并获取其 value\r",
+									"    var sales_amount = $('#SaleAmount').val();\r",
+									"    console.log(\"Captured SaleAmount:\", sales_amount);\r",
+									"    pm.expect(sales_amount).to.eql(\"3648\");\r",
+									"});\r",
+									"\r",
+									"// 5. Case 3：Verify GST\r",
+									"pm.test(\"Verify GST\", function () {\r",
+									"    // 直接通过 id 定位 input 元素并获取其 value\r",
+									"    var gst = $('#GST').val();\r",
+									"    console.log(\"Captured GST:\", gst);\r",
+									"    pm.expect(gst).to.eql(\"364.8\");\r",
+									"});\r",
+									"\r",
+									"// 6. Case 4：Verify Total Sale Amount (Inc GST)\r",
+									"pm.test(\"Verify Total Sale Amount (Inc GST)\", function () {\r",
+									"    // 直接通过 id 定位 input 元素并获取其 value\r",
+									"    var total_sales_amount= $('#SaleAmountIncGST').val();\r",
+									"    console.log(\"Captured Total Sale Amount (Inc GST)\", total_sales_amount);\r",
+									"    pm.expect(total_sales_amount).to.eql(\"4012.8\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "30c66b2a-a345-47a5-8bf1-716a19d13978"
+							}
+						}
+					],
+					"id": "02f3f7c4-9114-4960-ab88-fe54b21bb3c9",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/Final/{{quoteId}}"
+					},
+					"response": []
+				}
+			],
+			"id": "af5ad2da-dc01-4f00-bcee-247ff9f9c632"
+		},
+		{
+			"name": "List",
+			"item": [
+				{
+					"name": "MYOB",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "8fce2dec-13d8-40ed-bd35-602c0f50ac09"
+							}
+						}
+					],
+					"id": "5f1b4718-6bc6-4fc0-a2ed-cf7f1e0abe2b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/MYOB"
+					},
+					"response": []
+				},
+				{
+					"name": "New_Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "b59e811e-6e96-4ed0-ba61-080f674bd486"
+							}
+						}
+					],
+					"id": "e303f9e9-46c7-45d7-bd89-c2b2aa78610b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}\t/Quote/NewOrder"
+					},
+					"response": []
+				},
+				{
+					"name": "Job_Accepted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "69a909b3-fff6-4d02-b9f5-c0a8eeb35435"
+							}
+						}
+					],
+					"id": "9d0bed80-1bce-49a7-8afa-dd9022b8c337",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Quote/JobExcepted"
+					},
+					"response": []
+				},
+				{
+					"name": "Dispatch",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "93187a4a-cb43-47cf-867a-329eaf9f96e4"
+							}
+						}
+					],
+					"id": "eb4a1ddc-c4fc-43cc-a615-9bfe19b4f4ef",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Dispatch"
+					},
+					"response": []
+				},
+				{
+					"name": "Assembly_Interstate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "8d680217-e21c-4138-9734-31c294da4705"
+							}
+						}
+					],
+					"id": "6e76e37d-1001-4a0a-88c7-f1de07d1450b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/AssemblyInterstate"
+					},
+					"response": []
+				}
+			],
+			"id": "90b8d24b-d809-477b-82e4-3f8095f84f38"
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Get_Nightly_MYOB_Sheet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "142ff21a-51e7-454c-a7f1-3cf6b9f0d0fd"
+							}
+						}
+					],
+					"id": "2de339eb-a03f-4434-b645-7aefd3fa48c9",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/api/quote/test-generate-nightly-myob-sheet"
+					},
+					"response": []
+				},
+				{
+					"name": "Get_Nightly_Service_Schedule_Sheet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "93d2ddd3-aa90-4c24-9479-bafe86f3f480"
+							}
+						}
+					],
+					"id": "1c9f10e7-e81c-4e61-a015-190617727bec",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/api/quote/test-generate-service-nightly-schedule-sheet"
+					},
+					"response": []
+				},
+				{
+					"name": "Get_Nightly_Service_MYOB_Sheet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "b4ef31d4-ab11-442e-8500-ccc03cabb918"
+							}
+						}
+					],
+					"id": "8f56f830-990b-41ec-bb07-45b74cf92289",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/api/quote/test-generate-service-nightly-MYOB-sheet"
+					},
+					"response": []
+				},
+				{
+					"name": "Get_Nightly_Robot_Sheet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "7ba92f84-440b-4830-8ad7-5209094f481e"
+							}
+						}
+					],
+					"id": "6a81de1f-e725-4a9f-bafe-cfde61e088d6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/test-generate-nightly-rollforming-robot-sheet?includeSentCycles=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"test-generate-nightly-rollforming-robot-sheet"
+							],
+							"query": [
+								{
+									"key": "includeSentCycles",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get_Nightly_Rollforming_Sheet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "dc239e43-8b89-4661-8cf5-698e9a357952"
+							}
+						}
+					],
+					"id": "1ef241a2-be01-43f4-b1a7-3b6ee4f7afec",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/test-generate-nightly-rollforming-sheet?includeSentCycles=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"test-generate-nightly-rollforming-sheet"
+							],
+							"query": [
+								{
+									"key": "includeSentCycles",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "66bd234c-1da5-44df-a7bc-13e9c7986841"
+		},
+		{
+			"name": "Service",
+			"item": [
+				{
+					"name": "Service_List",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 5000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "6a243dc3-79cd-4ac1-86d3-2bfffe98917b"
+							}
+						}
+					],
+					"id": "41566abb-7583-4b10-bf1b-3461802dd81b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Service/List"
+					},
+					"response": []
+				},
+				{
+					"name": "Search_Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. 使用新的 require 方式引入 cheerio (消除警告的关键)\r",
+									"const cheerio = require('cheerio');\r",
+									"\r",
+									"// 2. 加载返回的 HTML\r",
+									"const $ = cheerio.load(pm.response.text());\r",
+									"\r",
+									"// 3. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 4. Case 2: Verify the search service result\r",
+									"pm.test(\"Verify the search service result\", function () {\r",
+									"    // 定位逻辑：找到 tbody 下的第一行 (tr)，找它的第二个单元格 (td)，获取其链接文本\r",
+									"    var firstInvoiceNo = $(\"table.grid-table tbody tr\").first().find(\"td\").eq(1).text().trim();\r",
+									"    \r",
+									"    console.log(\"First Result Invoice No:\", firstInvoiceNo);\r",
+									"    \r",
+									"    // 断言是否等于你搜索的编号\r",
+									"    pm.expect(firstInvoiceNo).to.eql(\"321038S1\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "02af6b6c-06fb-4011-89f1-a9474798430e"
+							}
+						}
+					],
+					"id": "baa7f484-067d-4d9d-81cd-0911853487c6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Service/ListServices?ServiceSearchModel.InvoiceNo=321038S1&FromDate=14/02/2026 - 14/05/2026&JobStatusNameTwo=All statuses&J=All statuses&ServiceSearchModel.FromDate=14/02/2026 - 14/05/2026",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Service",
+								"ListServices"
+							],
+							"query": [
+								{
+									"key": "ServiceSearchModel.InvoiceNo",
+									"value": "321038S1"
+								},
+								{
+									"key": "FromDate",
+									"value": "14/02/2026 - 14/05/2026"
+								},
+								{
+									"key": "JobStatusNameTwo",
+									"value": "All statuses"
+								},
+								{
+									"key": "J",
+									"value": "All statuses"
+								},
+								{
+									"key": "ServiceSearchModel.FromDate",
+									"value": "14/02/2026 - 14/05/2026"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "MYOB_Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 5000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "af76c766-8894-4cf8-886f-c4afbd06cde3"
+							}
+						}
+					],
+					"id": "1628880a-7671-4b63-9b63-c8d8f268028c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Service/MYOB"
+					},
+					"response": []
+				},
+				{
+					"name": "Add_Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "01822d86-e706-4a74-8b0c-54eda8922e49"
+							}
+						}
+					],
+					"id": "77e4ea5c-824f-4dc2-b203-522248e4db2d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Service/Create"
+					},
+					"response": []
+				}
+			],
+			"id": "86305da7-e8bd-4eea-a34a-4fc17a7ae571"
+		},
+		{
+			"name": "Production_VIC",
+			"item": [
+				{
+					"name": "Production_VIC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "0f9c240c-2a75-4d5e-b1c1-dca3436c67eb"
+							}
+						}
+					],
+					"id": "356eddfe-81c9-4d37-9f2f-fe05ffdb8ca5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production"
+					},
+					"response": []
+				},
+				{
+					"name": "ExoRoll_Prefab",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "2cf6add7-684b-4978-8708-5ced012de7c4"
+							}
+						}
+					],
+					"id": "ecf5396c-3e1a-4d7f-934b-c675dd664eb5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetRollerPrefabListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "ExoRoll_Modification",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "9335b17b-425f-486f-9962-ffaf12893517"
+							}
+						}
+					],
+					"id": "ddb7cd6a-478a-4f5e-ae48-71bb48022134",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetRollerModificationsListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "ExoRoll_Assembly",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "e65b650e-ba0c-44ff-96a3-9979012ac154"
+							}
+						}
+					],
+					"id": "35d3a325-69f5-48d8-9d4d-c201215ef07f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetRollerAssemblyListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "ExoRoll_ExtrasOrder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "c37f26c2-5d74-411c-a358-83cb30a5913c"
+							}
+						}
+					],
+					"id": "87bc0041-8ed9-410b-88aa-b9025f55cea6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetRollerExtraOrdersListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "ExoRoll_QC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "4725839e-d2d8-4704-a2a5-deb87641cb86"
+							}
+						}
+					],
+					"id": "653e95b0-fa49-466f-92e3-3e60de6466a3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetRollerQCFailListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 10000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "3b8f5e9e-f9bf-423f-bb48-cc4ef35b4054"
+							}
+						}
+					],
+					"id": "dbb3f371-4f75-4071-9f43-9d28cd408f31",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinOrderListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_Rollforming",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "8ba2e228-6c33-4aea-bd3a-850ceb6238aa"
+							}
+						}
+					],
+					"id": "d484da02-c8a2-4fd3-8c3a-24b71a35d52c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinRollingView"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_Assembly",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "a21154b8-7250-4b4b-a540-e6f0d7a30b97"
+							}
+						}
+					],
+					"id": "aabee0ed-f2b6-4b9c-8c5b-70ece60ab328",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinAssemblyListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_Modification",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "179c3dde-56a9-4ebd-a914-781c979ba107"
+							}
+						}
+					],
+					"id": "7116edee-a774-4396-a631-4749808d4668",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinModificationListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_ExtrasOrder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "2965d75e-ff0d-4d7b-a323-ab7fcca1f392"
+							}
+						}
+					],
+					"id": "09f1b5a6-3688-4fbe-92d2-434a0b6cc9b7",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinExtrasListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_Paint",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "cbabcd62-75c5-40b7-8905-e6341ded0111"
+							}
+						}
+					],
+					"id": "b14da5a4-6bae-4fce-a58c-c16f9ebfc8a7",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinPaintListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_Painted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "9c764156-8829-4d0f-bb15-29c6e2ddd439"
+							}
+						}
+					],
+					"id": "210860ba-adcb-4572-966d-d1f8ca8a93e4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinPaintedListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "PanelLift_QC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "094fc47a-a68d-4235-95a9-ff732943cc34"
+							}
+						}
+					],
+					"id": "e811b502-97ce-4182-b451-5ae1577d4fd5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetSingleSkinQCFailListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "Insulated_Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "c1efc8c1-c5b6-4e60-9419-3948e4d0694a"
+							}
+						}
+					],
+					"id": "362c065b-84ef-449d-b728-1263daf21e6d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetInsulatedOrderListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "Custom_Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "77d0923c-460c-4cf4-aeb7-a73c6198caea"
+							}
+						}
+					],
+					"id": "ad211032-a0ec-445e-aa6d-a30c221c7491",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetCustomOrderListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "Shutter_Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Case 2: Response time is acceptable\r",
+									"pm.test(\"Response time is less than 20000ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(20000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "b079f46d-26da-41d2-9901-9650116236fb"
+							}
+						}
+					],
+					"id": "59c67e83-4401-4c17-9917-a26a02f04184",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/GetShutterOrderListGrid"
+					},
+					"response": []
+				}
+			],
+			"id": "25c21ec8-81bb-433b-b376-ac0871e911c6"
+		},
+		{
+			"name": "Production_WA",
+			"item": [
+				{
+					"name": "Production_WA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "2853fc08-3d3f-429b-86c9-86513efa9d01"
+							}
+						}
+					],
+					"id": "cad59001-a367-4e45-b51f-382e74e70d96",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/Production/WA"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiRoll_Rollforming",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "03d5866e-d752-40f4-ab83-f70983aa7e65"
+							}
+						}
+					],
+					"id": "36bbc5c9-3d61-4b42-982b-f5dc099ef397",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiRollRollingView"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiRoll_Assembly",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "51b7ee43-b430-4dcf-b15f-3ec5e443b20b"
+							}
+						}
+					],
+					"id": "110eb53b-f73a-4a54-8e78-bd67326baa09",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiRollAssemblyListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiRoll_Modifications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "dce8b816-edae-47a0-8c0c-e54724fad75d"
+							}
+						}
+					],
+					"id": "b2c11be0-cc76-44fb-9660-cdeac95292dc",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiRollModificationsListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiRoll_ExtraOrders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "bfa60ac1-3f6d-4a7e-b721-a65de79056c6"
+							}
+						}
+					],
+					"id": "35edb298-bbcc-414c-9b8b-974738a747ee",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiRollExtrasOrdersListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiRoll_QC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "a6c326f0-1739-46a9-a04f-1c1d01c498ca"
+							}
+						}
+					],
+					"id": "8d1f70dd-99ab-4522-bb5d-2a8517fade9c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiRollQCFailListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiLift_Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "2cb360a9-f6a8-4729-8f78-459405cb56de"
+							}
+						}
+					],
+					"id": "3530523d-264a-4b4f-b7bc-738555aa84c2",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiLiftOrderListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiLift_Rollforming",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "2704be5a-c9f9-41f4-9dbb-5193c8adbcda"
+							}
+						}
+					],
+					"id": "a55d464e-ad5d-478e-9f23-5ad8a341b795",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiLiftRollingView"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiLift_Assembly",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "8b6ffb24-680a-489d-a830-3b5209073b03"
+							}
+						}
+					],
+					"id": "91bebf20-feec-458a-8dc0-c14b7d8c8d21",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiLiftAssemblyListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiLift_Modifications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "49b90b83-ed26-47de-8969-9aa6b8c63ff3"
+							}
+						}
+					],
+					"id": "5c3f45fc-1c7b-49a1-916d-cd5adf229cf5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiLiftModificationsListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiLift_ExtraOrders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "54769c73-c120-4216-9ab1-806c2a4ca732"
+							}
+						}
+					],
+					"id": "22879159-caf7-4a6e-94a8-3a74611265b3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}\t/ProductionWA/GetOptiLiftExtrasOrdersListGrid"
+					},
+					"response": []
+				},
+				{
+					"name": "OptiLift_QC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Case 1：Verify Return Code.\r",
+									"pm.test(\"Correct Return Code (200 )\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "fdeb8084-66d0-4b2f-9ca6-af42cf1b1c3a"
+							}
+						}
+					],
+					"id": "0c89c454-d383-4285-b500-132f8d60a45a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/ProductionWA/GetOptiLiftQCFailListGrid"
+					},
+					"response": []
+				}
+			],
+			"id": "7af5e629-d565-4354-9947-dbe12aaa2d74"
+		}
+	]
+}
