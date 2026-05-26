@@ -19,7 +19,7 @@
 									"// 1. Get the response HTML content as a string.    \r",
 									"var responseHTML = pm.response.text();\r",
 									"\r",
-									"// 2. Get the value from \" __RequestVerificationToken\"\r",
+									"// 2. Get the value from \" __RequestVerificationToken\".\r",
 									"var token = responseHTML.match(/name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"/);\r",
 									"\r",
 									"if (token && token.length > 1) {\r",
